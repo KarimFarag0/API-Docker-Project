@@ -8,14 +8,26 @@ const dbConfig = {
     host: "",
     user: "root",
     password: "123456",
-    database: "in-class-db",
+    database: "users",
+    port: 3306
 };
 
 // JSON
+/*
 
-app.use(express.json());
+{
+id: 1
+name: Allan
 
-app.post("/api/register", async (req, res) => {
+}
+
+*/
+
+app.use(express.json()); //express.json() -> middleware 
+
+//POST,GET,PUT,PATCH,DELETE
+// "api/register" enpoint > hhtps://localhost/api/register"
+app.post("/api/register", async (req, res) => { //everytime we want create something 
     const {name, email, password} = req.body;
 
     if(!name || !email || !password){
@@ -25,9 +37,8 @@ app.post("/api/register", async (req, res) => {
     try{
         const conn = await mysql.createConnection(dbConfig);
 
-        const query = "INSERT INTO users (name,emaio,password) VALUES (?,?,?)";
+        const query = "INSERT INTO users (name,email,password) VALUES (?,?,?)";
         await conn.execute(query, [name,email,password]);
-
         await conn.end();
         res.status(201).json({message: "created with success"});
 
@@ -49,13 +60,19 @@ app.get("/api/register", async (req,res) => {
     }
 });
 
+//
+app.get("/", async (req,res) => {
+    
+    res.status(200).json({message: "API is running"}); //array of ojects with our data
+});
+
 
 //
 
 async function initDatabase() {
     try {
         const conn = await mysql.createConnection(dbConfig);
-        const tables = await conn.query("SHOW TALES like 'users'");
+        const tables = await conn.query("SHOW TABLES like 'users'");
 
         if(tables.length === 0){
             const createTableQuery = `
@@ -64,7 +81,7 @@ async function initDatabase() {
                 name VARCHAR(200) NOT NULL,
                 email VARCHAR(200) NOT NULL UNIQUE,
                 password VARCHAR(100) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             };
             `;
 
@@ -75,7 +92,7 @@ async function initDatabase() {
         await conn.end();
 
     }catch(error){
-        console.log("Database error");
+        console.log("Database error", error);
         process.exit(1);
     }
 }
